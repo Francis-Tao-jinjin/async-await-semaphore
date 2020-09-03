@@ -90,3 +90,47 @@ tape('semaphore example', async (t) => {
     console.log('finished', finished);
     t.end();
 });
+
+tape('semaphore try-catch', async (t) => {
+    let count = 0;
+    async function TryCatch() {
+        const semaphore = new Semaphore(1);
+        await semaphore.p();
+        try {
+            for (let i = 0; i < 5; i++) {
+                try {
+                    return await new Promise<number>((resolve, rejects) => {
+                        setTimeout(() => {
+                            const value = Math.random();
+                            if (value < 0.5 || i === 4) {
+                                count++;
+                                resolve(value);
+                            } else {
+                                rejects(('> value larger than 0.5: ' + value + ', try again'));
+                            }
+                        }, 5);
+                    });
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+            throw new Error('failed to get number smaller than 0.5');
+        } finally {
+            semaphore.v();
+        }
+    }
+
+    for (let i = 0; i < 5; i++) {
+        TryCatch()
+        .then((v) =>  {
+            t.equals(v <= 0.5, true, String(v));
+        }).catch((e) => {
+            console.error(e);
+        });
+    }
+
+    await sleep(200);
+    console.log('count = ', count);
+    t.equals(count, 5, 'only resolve 5 times');
+    t.end();
+});
