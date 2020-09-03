@@ -9,7 +9,7 @@ a semaphore provide two operations, historically denoted as P and V. Operation V
 create a semaphore
 
 ```javascript
-import {Semaphore} from 'async await-semaphore';
+import {Semaphore} from 'async-await-semaphore';
 
 const semaphore = new Semaphore();
 ```
